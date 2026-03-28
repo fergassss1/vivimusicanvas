@@ -146,7 +146,7 @@
                 card.className = 'canvas-card';
                 card.innerHTML = `
                     <div class="video-preview">
-                        <video loop muted playsinline onmouseover="this.play()" onmouseout="this.pause()">
+                        <video loop muted playsinline onplay="this.volume=0" onmouseover="this.play()" onmouseout="this.pause()">
                             <source src="${item.url}" type="video/mp4">
                         </video>
                     </div>

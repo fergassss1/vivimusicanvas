@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ViviMusic Custom Canvas Directory - Explore all user-uploaded background videos for the ViviMusic App.">
+    <title>ViviMusic Canvas Directory</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-blob"></div>
+    <div class="background-blob secondary"></div>
+    
+    <main class="container">
+        <header>
+            <h1 id="main-title">ViviMusic Canvas</h1>
+            <p>Check if your favorite song has a custom background!</p>
+            
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Search by song or artist..." autocomplete="off">
+            </div>
+        </header>
+
+        <section id="status-bar" class="status-bar">
+            <span id="song-count">Loading songs...</span>
+        </section>
+
+        <!-- Track List Section for quick checking -->
+        <section class="track-list-container" id="track-list-wrapper">
+            <div id="track-list">
+                <!-- Tracks rendered here -->
+            </div>
+        </section>
+
+        <section id="gallery-title" class="status-bar">
+            <span>Visual Gallery</span>
+        </section>
+
+        <section id="canvas-grid" class="grid">
+            <div class="loader" id="loading-spinner"></div>
+        </section>
+    </main>
+
+    <script>
+        let allItems = [];
+
+        async function loadCanvases() {
+            try {
+                const response = await fetch('./canvas.json');
+                if (!response.ok) throw new Error('Failed to load metadata');
+                
+                const data = await response.json();
+                allItems = data.items || [];
+                renderCanvases(allItems);
+                
+                document.getElementById('song-count').textContent = `${allItems.length} songs added`;
+            } catch (error) {
+                console.error(error);
+                document.getElementById('canvas-grid').innerHTML = `
+                    <p class="error-state">Failed to load the canvas directory. Please verify that canvas.json exists.</p>
+                `;
+            }
+        }
+
+        function renderCanvases(items) {
+            const grid = document.getElementById('canvas-grid');
+            const trackList = document.getElementById('track-list');
+            grid.innerHTML = ''; 
+            trackList.innerHTML = '';
+
+            if(items.length === 0) {
+                grid.innerHTML = '<p class="empty-state">No matching songs found.</p>';
+                trackList.innerHTML = '<p class="empty-state" style="padding: 1rem;">No matching tracks in the database.</p>';
+                return;
+            }
+
+            items.forEach((item, index) => {
+                // Render List Item (The Track Checkbox/Checklist)
+                const trackItem = document.createElement('div');
+                trackItem.className = 'track-item';
+                trackItem.innerHTML = `
+                    <div class="track-info">
+                        <span class="track-name">${item.song}</span>
+                        <span class="track-artist">${item.artist}</span>
+                    </div>
+                    <div class="status-badge">Available</div>
+                `;
+                trackList.appendChild(trackItem);
+
+                // Render Original Gallery Card
+                const card = document.createElement('article');
+                card.className = 'canvas-card';
+                card.innerHTML = `
+                    <div class="card-content">
+                        <div class="video-preview">
+                            <video loop muted onmouseover="this.play()" onmouseout="this.pause()">
+                                <source src="${item.url}" type="video/mp4">
+                            </video>
+                            <div class="overlay"></div>
+                            <div class="card-info">
+                                <h2>${item.song}</h2>
+                                <h3>${item.artist}</h3>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allItems.filter(item => 
+                item.song.toLowerCase().includes(term) || 
+                item.artist.toLowerCase().includes(term)
+            );
+            renderCanvases(filtered);
+            document.getElementById('song-count').textContent = filtered.length === 1 ? '1 match found' : `${filtered.length} matches found`;
+        });
+
+        document.addEventListener('DOMContentLoaded', loadCanvases);
+    </script>
+</body>
+</html>

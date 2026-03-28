@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="ViviMusic Custom Canvas Directory - Explore all user-uploaded background videos for the ViviMusic App.">
-    <title>ViviMusic Canvas Directory</title>
+    <meta name="description" content="ViviMusic Custom Canvas Guide - Learn how to add and discover user-uploaded background videos for the ViviMusic App.">
+    <title>ViviMusic Canvas Hub</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="background-blob"></div>
@@ -14,27 +15,57 @@
     
     <main class="container">
         <header>
+            <div class="repo-badge">
+                <a href="https://github.com/vivizzz007/vivimusicanvas" target="_blank">
+                    <i class="fab fa-github"></i> github.com/vivizzz007/vivimusicanvas
+                </a>
+            </div>
             <h1 id="main-title">ViviMusic Canvas</h1>
-            <p>Check if your favorite song has a custom background!</p>
-            
-            <div class="search-container">
-                <input type="text" id="search-input" placeholder="Search by song or artist..." autocomplete="off">
+            <p>The ultimate hub for custom motion artwork. Personalize your music experience with beautiful, looping visuals.</p>
+            <div class="cta-container" style="margin-top: 2.5rem;">
+                <a href="https://github.com/vivizzz007/vivimusicanvas" class="btn btn-primary" target="_blank">
+                    <i class="fab fa-github"></i> Contribute on GitHub
+                </a>
             </div>
         </header>
 
-        <section id="status-bar" class="status-bar">
-            <span id="song-count">Loading songs...</span>
-        </section>
+        <!-- Instructions Section -->
+        <section class="instructions-section">
+            <h2 class="section-title">How to add a Canvas</h2>
+            <div class="instruction-grid">
+                <article class="step-card">
+                    <span class="step-number">01</span>
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h3>Upload Video</h3>
+                    <p>Place your <code>.mp4</code> file in the <code>Song/</code> or <code>Album/</code> folder. 
+                    <br><br>
+                    <strong>Tip:</strong> Keep file sizes small (< 5MB) for instant loading.</p>
+                </article>
 
-        <!-- Track List Section for quick checking -->
-        <section class="track-list-container" id="track-list-wrapper">
-            <div id="track-list">
-                <!-- Tracks rendered here -->
+                <article class="step-card">
+                    <span class="step-number">02</span>
+                    <i class="fas fa-code"></i>
+                    <h3>Update JSON</h3>
+                    <p>Add a new entry to <code>canvas.json</code> mapping the <strong>Song Title</strong> and <strong>Artist</strong> to your public URL.</p>
+                </article>
+
+                <article class="step-card">
+                    <span class="step-number">03</span>
+                    <i class="fas fa-mobile-alt"></i>
+                    <h3>Enable in App</h3>
+                    <p>In ViviMusic settings, enable <strong>"Show motion artwork"</strong>. Play your song & enjoy the visuals!</p>
+                </article>
             </div>
         </section>
 
-        <section id="gallery-title" class="status-bar">
-            <span>Visual Gallery</span>
+        <!-- Gallery Section -->
+        <section id="gallery-header" class="status-bar">
+            <h2>Canvas Directory</h2>
+            <span id="song-count">Loading database...</span>
+        </section>
+
+        <section class="search-container">
+            <input type="text" id="search-input" placeholder="Search by song or artist..." autocomplete="off">
         </section>
 
         <section id="canvas-grid" class="grid">
@@ -42,67 +73,62 @@
         </section>
     </main>
 
+    <footer>
+        <div class="container" style="padding-top: 2rem; border-top: 1px solid var(--card-border); text-align: center; color: var(--text-dim); font-size: 0.9rem;">
+            <p>ViviMusic Canvas Hub &copy; 2026. Powered by Vercel.</p>
+        </div>
+    </footer>
+
     <script>
         let allItems = [];
 
         async function loadCanvases() {
             try {
-                const response = await fetch('./canvas.json');
+                // Fetch with cache busting to ensure fresh data
+                const response = await fetch(`./canvas.json?v=${Date.now()}`);
                 if (!response.ok) throw new Error('Failed to load metadata');
                 
                 const data = await response.json();
                 allItems = data.items || [];
                 renderCanvases(allItems);
                 
-                document.getElementById('song-count').textContent = `${allItems.length} songs added`;
+                document.getElementById('song-count').textContent = `${allItems.length} active canvases`;
             } catch (error) {
                 console.error(error);
                 document.getElementById('canvas-grid').innerHTML = `
-                    <p class="error-state">Failed to load the canvas directory. Please verify that canvas.json exists.</p>
+                    <p class="error-state" style="grid-column: 1/-1; text-align: center; padding: 3rem; background: rgba(255,0,0,0.05); border-radius: 20px;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem; color: #ff5252;"></i><br>
+                        Failed to load the canvas directory. Verify that <code>canvas.json</code> is properly formatted.
+                    </p>
                 `;
             }
         }
 
         function renderCanvases(items) {
             const grid = document.getElementById('canvas-grid');
-            const trackList = document.getElementById('track-list');
             grid.innerHTML = ''; 
-            trackList.innerHTML = '';
 
             if(items.length === 0) {
-                grid.innerHTML = '<p class="empty-state">No matching songs found.</p>';
-                trackList.innerHTML = '<p class="empty-state" style="padding: 1rem;">No matching tracks in the database.</p>';
+                grid.innerHTML = `
+                    <p class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 4rem; opacity: 0.5;">
+                        No matching songs found in the directory.
+                    </p>
+                `;
                 return;
             }
 
-            items.forEach((item, index) => {
-                // Render List Item (The Track Checkbox/Checklist)
-                const trackItem = document.createElement('div');
-                trackItem.className = 'track-item';
-                trackItem.innerHTML = `
-                    <div class="track-info">
-                        <span class="track-name">${item.song}</span>
-                        <span class="track-artist">${item.artist}</span>
-                    </div>
-                    <div class="status-badge">Available</div>
-                `;
-                trackList.appendChild(trackItem);
-
-                // Render Original Gallery Card
+            items.forEach((item) => {
                 const card = document.createElement('article');
                 card.className = 'canvas-card';
                 card.innerHTML = `
-                    <div class="card-content">
-                        <div class="video-preview">
-                            <video loop muted onmouseover="this.play()" onmouseout="this.pause()">
-                                <source src="${item.url}" type="video/mp4">
-                            </video>
-                            <div class="overlay"></div>
-                            <div class="card-info">
-                                <h2>${item.song}</h2>
-                                <h3>${item.artist}</h3>
-                            </div>
-                        </div>
+                    <div class="video-preview">
+                        <video loop muted playsinline onmouseover="this.play()" onmouseout="this.pause()">
+                            <source src="${item.url}" type="video/mp4">
+                        </video>
+                    </div>
+                    <div class="card-info">
+                        <h2>${item.song}</h2>
+                        <h3>${item.artist}</h3>
                     </div>
                 `;
                 grid.appendChild(card);

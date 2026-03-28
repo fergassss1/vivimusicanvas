@@ -83,6 +83,14 @@
         <section id="canvas-grid" class="grid">
             <div class="loader" id="loading-spinner"></div>
         </section>
+
+        <!-- Availability List Section -->
+        <section class="availability-section" style="margin-top: 6rem;">
+            <h2 class="section-title">Full Availability List</h2>
+            <div id="availability-list" class="list-container">
+                <!-- Full list rendered here -->
+            </div>
+        </section>
     </main>
 
     <footer>
@@ -103,7 +111,10 @@
                 
                 const data = await response.json();
                 allItems = data.items || [];
-                renderCanvases(allItems);
+                
+                // Initially show only the first 3 in gallery, all in list
+                renderGallery(allItems.slice(0, 3));
+                renderAvailability(allItems);
                 
                 document.getElementById('song-count').textContent = `${allItems.length} active canvases`;
             } catch (error) {
@@ -117,14 +128,14 @@
             }
         }
 
-        function renderCanvases(items) {
+        function renderGallery(items) {
             const grid = document.getElementById('canvas-grid');
             grid.innerHTML = ''; 
 
             if(items.length === 0) {
                 grid.innerHTML = `
                     <p class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 4rem; opacity: 0.5;">
-                        No matching songs found in the directory.
+                        No matching songs found in the gallery.
                     </p>
                 `;
                 return;
@@ -148,14 +159,47 @@
             });
         }
 
+        function renderAvailability(items) {
+            const list = document.getElementById('availability-list');
+            list.innerHTML = '';
+
+            if(items.length === 0) {
+                list.innerHTML = `<p class="empty-state" style="padding: 2rem; opacity: 0.5;">No songs found.</p>`;
+                return;
+            }
+
+            items.forEach((item) => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'list-item';
+                itemEl.innerHTML = `
+                    <div class="item-info">
+                        <strong>${item.song}</strong>
+                        <span>${item.artist}</span>
+                    </div>
+                    <div class="status-badge">
+                        <i class="fas fa-check-circle"></i> Added
+                    </div>
+                `;
+                list.appendChild(itemEl);
+            });
+        }
+
         document.getElementById('search-input').addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
-            const filtered = allItems.filter(item => 
-                item.song.toLowerCase().includes(term) || 
-                item.artist.toLowerCase().includes(term)
-            );
-            renderCanvases(filtered);
-            document.getElementById('song-count').textContent = filtered.length === 1 ? '1 match found' : `${filtered.length} matches found`;
+            
+            if (term.trim() === '') {
+                renderGallery(allItems.slice(0, 3));
+                renderAvailability(allItems);
+                document.getElementById('song-count').textContent = `${allItems.length} active canvases`;
+            } else {
+                const filtered = allItems.filter(item => 
+                    item.song.toLowerCase().includes(term) || 
+                    item.artist.toLowerCase().includes(term)
+                );
+                renderGallery(filtered);
+                renderAvailability(filtered);
+                document.getElementById('song-count').textContent = filtered.length === 1 ? '1 match found' : `${filtered.length} matches found`;
+            }
         });
 
         document.addEventListener('DOMContentLoaded', loadCanvases);

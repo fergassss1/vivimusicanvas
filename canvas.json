@@ -234,10 +234,7 @@
       "song": "Pal Pal",
       "artist": "Afusic",
       "url": "https://vivimusicanvas-q75m.vercel.app/Song/12palpal.mp4"
-    }
-  ]
-  {
-  "items": [
+    },
     {
       "song": "Pain",
       "artist": "PinkPantheress",
@@ -289,5 +286,4 @@
       "url": "https://vivimusicanvas.vercel.app/Song/13.m3u8"
     }
   ]
-}
 }
